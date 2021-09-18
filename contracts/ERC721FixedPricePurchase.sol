@@ -14,8 +14,14 @@ contract ERC721FixedPricePurchase is Ownable {
     /// @dev mapping from collection owner to collection fee
     mapping(address => uint256) public collectionFee;
 
+    /// @dev mapping from collection owner to fees accrued
+    mapping(address => uint256) public collectionFeesAccrued;
+
     /// @dev fee for the protocol
     uint256 public protocolFee;
+
+    /// @dev protocol fees accrued
+    uint256 public protocolFeesAccrued;
 
     /// @dev used to calculate the percent of a fee
     uint constant FEE_BASE = 1 ether;
@@ -64,12 +70,20 @@ contract ERC721FixedPricePurchase is Ownable {
         require(listing[erc721][tokenId] > 0, "ERC721FixedPricePurchase: Token is not listed");
         listing[erc721][tokenId] = 0;
         address from = IERC721(erc721).ownerOf(tokenId);
-        IERC721(erc721).safeTransferFrom(from, msg.sender, tokenId);
-        (bool sent, bytes memory data) = from.call{value: msg.value}("");
+
+        uint256 collectionFeeAmount = msg.value * collectionFee[erc721] / FEE_BASE;
+        uint256 protocolFeeAmount = msg.value * protocolFee / FEE_BASE;
+        uint256 sellerFeeAmount = msg.value - protocolFeeAmount - collectionFeeAmount;
+
+        collectionFeesAccrued[erc721] += collectionFeeAmount;
+        protocolFeesAccrued += protocolFeeAmount;
+
+        (bool sent, bytes memory data) = from.call{value: sellerFeeAmount}("");
         require(sent, "ERC721FixedPricePurchase: Failed to send Ether");
+
+        IERC721(erc721).safeTransferFrom(from, msg.sender, tokenId);
         emit Purchased(erc721, tokenId, msg.sender);
     }
-
 
     function setCollectionFee(address erc721, uint256 fee) onlyCollectionOwner(erc721) public {
         collectionFee[erc721] = fee;
