@@ -27,14 +27,18 @@ contract ERC721FixedPricePurchase {
         address indexed buyer
     );
 
-    // TODO: only owner can list
-    function list(address erc721, uint256 tokenId, uint256 price) public {
+    modifier onlyErc721Owner(address erc721, uint256 tokenId) {
+        require(IERC721(erc721).ownerOf(tokenId) == msg.sender, "ERC721FixedPricePurchase: Only ERC721 owner can call this function");
+        _;
+    }
+
+    function list(address erc721, uint256 tokenId, uint256 price) onlyErc721Owner(erc721, tokenId) public {
         listing[erc721][tokenId] = price;
         emit Listed(erc721, tokenId, msg.sender, price);
     }
 
     // TODO: make sure approval removed beforehand, only owner can list
-    function delist(address erc721, uint256 tokenId) public {
+    function delist(address erc721, uint256 tokenId) onlyErc721Owner(erc721, tokenId) public {
         listing[erc721][tokenId] = 0;
         emit Delisted(erc721, tokenId, msg.sender);
     }
