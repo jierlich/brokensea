@@ -13,6 +13,9 @@ contract ERC721FixedPricePurchase {
     /// @dev mapping from collection owner to collection fee
     mapping(address => uint256) public collectionFee;
 
+    /// @dev used to calculate the percent of a fee
+    uint constant FEE_BASE = 1 ether;
+
     event Listed(
         address indexed erc721,
         uint256 indexed tokenId,
