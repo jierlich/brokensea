@@ -45,6 +45,7 @@ contract ERC721FixedPricePurchase {
 
     function purchase(address erc721, uint256 tokenId) public payable {
         require(msg.value >= listing[erc721][tokenId], "ERC721FixedPricePurchase: Buyer didn't send enough ether");
+        require(listing[erc721][tokenId] > 0, "ERC721FixedPricePurchase: Token is not listed");
         listing[erc721][tokenId] = 0;
         address from = IERC721(erc721).ownerOf(tokenId);
         IERC721(erc721).safeTransferFrom(from, msg.sender, tokenId);
