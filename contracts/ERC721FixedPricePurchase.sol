@@ -37,8 +37,8 @@ contract ERC721FixedPricePurchase {
         emit Listed(erc721, tokenId, msg.sender, price);
     }
 
-    // TODO: make sure approval removed beforehand, only owner can list
     function delist(address erc721, uint256 tokenId) onlyErc721Owner(erc721, tokenId) public {
+        require(IERC721(erc721).getApproved(tokenId) != address(this), "ERC721FixedPricePurchase: Must revoke approval before delisting");
         listing[erc721][tokenId] = 0;
         emit Delisted(erc721, tokenId, msg.sender);
     }
