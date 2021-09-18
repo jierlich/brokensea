@@ -3,10 +3,11 @@
 pragma solidity =0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IOwnable.sol";
 
 
-contract ERC721FixedPricePurchase {
+contract ERC721FixedPricePurchase is Ownable {
     /// @dev mapping from ERC721 address -> token id -> listing price
     mapping(address => mapping(uint256 => uint256)) public listing;
 
