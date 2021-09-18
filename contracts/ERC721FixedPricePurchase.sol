@@ -3,11 +3,15 @@
 pragma solidity =0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "./interfaces/IOwnable.sol";
 
 
 contract ERC721FixedPricePurchase {
     /// @dev mapping from ERC721 address -> token id -> listing price
     mapping(address => mapping(uint256 => uint256)) public listing;
+
+    /// @dev mapping from collection owner to collection fee
+    mapping(address => uint256) public collectionFee;
 
     event Listed(
         address indexed erc721,
@@ -32,6 +36,11 @@ contract ERC721FixedPricePurchase {
         _;
     }
 
+    modifier onlyCollectionOwner(address erc721) {
+        require(IOwnable(erc721).owner() == msg.sender, "ERC721FixedPricePurchase: Only ERC721 owner can call this function");
+        _;
+    }
+
     function list(address erc721, uint256 tokenId, uint256 price) onlyErc721Owner(erc721, tokenId) public {
         listing[erc721][tokenId] = price;
         emit Listed(erc721, tokenId, msg.sender, price);
@@ -52,5 +61,10 @@ contract ERC721FixedPricePurchase {
         (bool sent, bytes memory data) = from.call{value: msg.value}("");
         require(sent, "ERC721FixedPricePurchase: Failed to send Ether");
         emit Purchased(erc721, tokenId, msg.sender);
+    }
+
+
+    function setCollectionFee(address erc721, uint256 fee) onlyCollectionOwner(erc721) public {
+        collectionFee[erc721] = fee;
     }
 }
