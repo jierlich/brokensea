@@ -14,6 +14,9 @@ contract ERC721FixedPricePurchase is Ownable {
     /// @dev mapping from collection owner to collection fee
     mapping(address => uint256) public collectionFee;
 
+    /// @dev fee for the protocol
+    uint256 public protocolFee;
+
     /// @dev used to calculate the percent of a fee
     uint constant FEE_BASE = 1 ether;
 
@@ -70,5 +73,9 @@ contract ERC721FixedPricePurchase is Ownable {
 
     function setCollectionFee(address erc721, uint256 fee) onlyCollectionOwner(erc721) public {
         collectionFee[erc721] = fee;
+    }
+
+    function setProtocolFee(uint256 fee) onlyOwner() public {
+        protocolFee = fee;
     }
 }
