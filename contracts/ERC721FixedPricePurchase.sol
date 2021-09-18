@@ -101,4 +101,12 @@ contract ERC721FixedPricePurchase is Ownable {
         (bool sent,) = collectionOwner.call{value: amount}("");
         require(sent, "ERC721FixedPricePurchase: Failed to send Ether");
     }
+
+    function protocolWithdraw() public {
+        require(protocolFeesAccrued > 0, 'ERC721FixedPricePurchase: No protocol funds to withdraw');
+        uint256 amount = protocolFeesAccrued;
+        protocolFeesAccrued = 0;
+        (bool sent,) = owner().call{value: amount}("");
+        require(sent, "ERC721FixedPricePurchase: Failed to send Ether");
+    }
 }
