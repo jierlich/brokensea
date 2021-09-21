@@ -37,12 +37,6 @@ contract ERC721FixedPricePurchase is Ownable {
         uint256 price
     );
 
-    event Delisted(
-        address indexed erc721,
-        uint256 indexed tokenId,
-        address indexed owner
-    );
-
     event Purchased(address indexed erc721,
         uint256 indexed tokenId,
         address indexed buyer
@@ -66,12 +60,6 @@ contract ERC721FixedPricePurchase is Ownable {
     function list(address erc721, uint256 tokenId, uint256 price) onlyErc721Owner(erc721, tokenId) public {
         listing[erc721][tokenId] = price;
         emit Listed(erc721, tokenId, msg.sender, price);
-    }
-
-    function delist(address erc721, uint256 tokenId) onlyErc721Owner(erc721, tokenId) public {
-        require(IERC721(erc721).getApproved(tokenId) != address(this), "ERC721FixedPricePurchase: Must revoke approval before delisting");
-        listing[erc721][tokenId] = 0;
-        emit Delisted(erc721, tokenId, msg.sender);
     }
 
     /// @notice purchase an ERC721 token that is on sale
