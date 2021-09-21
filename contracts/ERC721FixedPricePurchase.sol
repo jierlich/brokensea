@@ -6,7 +6,11 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IOwnable.sol";
 
-
+/// @title A fixed price ERC721 Purchase Contract
+/// @author Jonah Erlich
+/// @notice Users can list NFTs, purchase listed NFTs, and delist NFTs
+/// @notice Collection owners can set fees
+/// @dev The collection owner fee is dependent on the existence of an `owner` function on the ERC721 contract
 contract ERC721FixedPricePurchase is Ownable {
     /// @dev mapping from ERC721 address -> token id -> listing price
     mapping(address => mapping(uint256 => uint256)) public listing;
@@ -23,7 +27,7 @@ contract ERC721FixedPricePurchase is Ownable {
     /// @dev protocol fees accrued
     uint256 public protocolFeesAccrued;
 
-    /// @dev used to calculate the percent of a fee
+    /// @dev used to calculate the per-ether of a fee
     uint constant FEE_BASE = 1 ether;
 
     event Listed(
@@ -54,6 +58,11 @@ contract ERC721FixedPricePurchase is Ownable {
         _;
     }
 
+    /// @notice list an ERC721 token for sale
+    /// @dev delisting is done externally by revoking approval on the ERC721
+    /// @param erc721 token contract
+    /// @param tokenId id of the ERC721 token being listed
+    /// @param price amount buyer must pay to purchase
     function list(address erc721, uint256 tokenId, uint256 price) onlyErc721Owner(erc721, tokenId) public {
         listing[erc721][tokenId] = price;
         emit Listed(erc721, tokenId, msg.sender, price);
@@ -65,6 +74,10 @@ contract ERC721FixedPricePurchase is Ownable {
         emit Delisted(erc721, tokenId, msg.sender);
     }
 
+    /// @notice purchase an ERC721 token that is on sale
+    /// @dev fees are calculated per-ether using the fee base
+    /// @param erc721 token contract
+    /// @param tokenId id of the ERC721 token being listed
     function purchase(address erc721, uint256 tokenId) public payable {
         require(msg.value >= listing[erc721][tokenId], "ERC721FixedPricePurchase: Buyer didn't send enough ether");
         require(listing[erc721][tokenId] > 0, "ERC721FixedPricePurchase: Token is not listed");
