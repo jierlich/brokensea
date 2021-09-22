@@ -86,14 +86,21 @@ contract ERC721FixedPricePurchase is Ownable {
         emit Purchased(erc721, tokenId, msg.sender);
     }
 
+    /// @notice set the per-ether fee of the collection owner
+    /// @param erc721 token contract
+    /// @param fee per-ether amount of the transaction
     function setCollectionFee(address erc721, uint256 fee) onlyCollectionOwner(erc721) public {
         collectionFee[erc721] = fee;
     }
 
+    /// @notice set the per-ether fee of the protocol owner
+    /// @param fee per-ether amount of the transaction
     function setProtocolFee(uint256 fee) onlyOwner() public {
         protocolFee = fee;
     }
 
+    /// @notice allows collection owner to withdraw collected fees
+    /// @param erc721 token contract
     function collectionWithdraw(address erc721) public {
         require(collectionFeesAccrued[erc721] > 0, 'ERC721FixedPricePurchase: No funds to withdraw for this collection');
         address payable collectionOwner = payable(IOwnable(erc721).owner());
@@ -103,6 +110,7 @@ contract ERC721FixedPricePurchase is Ownable {
         require(sent, "ERC721FixedPricePurchase: Failed to send Ether");
     }
 
+    /// @notice allows protocol owner to withdraw collected fees
     function protocolWithdraw() public {
         require(protocolFeesAccrued > 0, 'ERC721FixedPricePurchase: No protocol funds to withdraw');
         uint256 amount = protocolFeesAccrued;
