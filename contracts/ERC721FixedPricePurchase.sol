@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IOwnable.sol";
 
 /// @title A fixed price ERC721 Purchase Contract
-/// @author Jonah Erlich
+/// @author jierlich
 /// @notice Users can list NFTs, purchase listed NFTs, and delist NFTs
 /// @notice Collection owners can set fees
 /// @dev The collection owner fee is dependent on the existence of an `owner` function on the ERC721 contract
@@ -30,17 +30,9 @@ contract ERC721FixedPricePurchase is Ownable {
     /// @dev used to calculate the per-ether of a fee
     uint constant FEE_BASE = 1 ether;
 
-    event Listed(
-        address indexed erc721,
-        uint256 indexed tokenId,
-        address indexed owner,
-        uint256 price
-    );
+    event Listed(address indexed erc721, uint256 indexed tokenId, address indexed owner, uint256 price);
 
-    event Purchased(address indexed erc721,
-        uint256 indexed tokenId,
-        address indexed buyer
-    );
+    event Purchased(address indexed erc721, uint256 indexed tokenId, address indexed buyer);
 
     modifier onlyErc721Owner(address erc721, uint256 tokenId) {
         require(IERC721(erc721).ownerOf(tokenId) == msg.sender, "ERC721FixedPricePurchase: Only ERC721 owner can call this function");
@@ -48,11 +40,12 @@ contract ERC721FixedPricePurchase is Ownable {
     }
 
     modifier onlyCollectionOwner(address erc721) {
-        require(IOwnable(erc721).owner() == msg.sender, "ERC721FixedPricePurchase: Only ERC721 owner can call this function");
+        require(IOwnable(erc721).owner() == msg.sender, "ERC721FixedPricePurchase: Only collection owner can call this function");
         _;
     }
 
     /// @notice list an ERC721 token for sale
+    /// @dev the owner must approve the tokenId on the ERC721 in a separate transaction to fully list
     /// @dev delisting is done externally by revoking approval on the ERC721
     /// @param erc721 token contract
     /// @param tokenId id of the ERC721 token being listed
@@ -63,7 +56,7 @@ contract ERC721FixedPricePurchase is Ownable {
     }
 
     /// @notice purchase an ERC721 token that is on sale
-    /// @dev fees are calculated per-ether using the fee base
+    /// @dev fees are calculated per-ether using the fee base constant
     /// @param erc721 token contract
     /// @param tokenId id of the ERC721 token being listed
     function purchase(address erc721, uint256 tokenId) public payable {
