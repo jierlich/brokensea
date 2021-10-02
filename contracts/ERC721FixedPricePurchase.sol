@@ -27,8 +27,8 @@ contract ERC721FixedPricePurchase is Ownable {
     /// @dev protocol fees accrued
     uint256 public protocolFeesAccrued;
 
-    /// @dev used to calculate the per-ether of a fee
-    uint constant FEE_BASE = 1 ether;
+    /// @dev used to calculate the basis point fee
+    uint constant FEE_BASE = 10000;
 
     event Listed(address indexed erc721, uint256 indexed tokenId, address indexed owner, uint256 price);
 
@@ -56,7 +56,7 @@ contract ERC721FixedPricePurchase is Ownable {
     }
 
     /// @notice purchase an ERC721 token that is on sale
-    /// @dev fees are calculated per-ether using the fee base constant
+    /// @dev basis point fees are calculated using the fee base constant
     /// @param erc721 token contract
     /// @param tokenId id of the ERC721 token being listed
     function purchase(address erc721, uint256 tokenId) public payable {
@@ -79,15 +79,15 @@ contract ERC721FixedPricePurchase is Ownable {
         emit Purchased(erc721, tokenId, msg.sender);
     }
 
-    /// @notice set the per-ether fee of the collection owner
+    /// @notice set the basis point fee of the collection owner
     /// @param erc721 token contract
-    /// @param fee per-ether amount of the transaction
+    /// @param fee basis point amount of the transaction
     function setCollectionFee(address erc721, uint256 fee) onlyCollectionOwner(erc721) public {
         collectionFee[erc721] = fee;
     }
 
-    /// @notice set the per-ether fee of the protocol owner
-    /// @param fee per-ether amount of the transaction
+    /// @notice set the basis point fee of the protocol owner
+    /// @param fee basis point amount of the transaction
     function setProtocolFee(uint256 fee) onlyOwner() public {
         protocolFee = fee;
     }
