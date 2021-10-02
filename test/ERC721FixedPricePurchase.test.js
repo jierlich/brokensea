@@ -195,6 +195,21 @@ describe("ERC721FixedPricePurchase", async () => {
             .list(this.MockERC721.address, BN(2), ethers.utils.parseEther("0.01"))
         ).to.be.revertedWith("ERC721FixedPricePurchase: Only ERC721 owner can call this function")
     })
+
+    it("blocks non-owner relist", async () => {
+        await this.MockERC721
+            .connect(this.signers[1])
+            .approve(this.ERC721FixedPricePurchase.address, BN(1))
+        await this.ERC721FixedPricePurchase
+            .connect(this.signers[1])
+            .list(this.MockERC721.address, BN(1), ethers.utils.parseEther("1"))
+
+        await expect(
+            this.ERC721FixedPricePurchase
+                .connect(this.signers[2])
+                .list(this.MockERC721.address, BN(1), ethers.utils.parseEther("0.1"))
+        ).to.be.revertedWith("ERC721FixedPricePurchase: Only ERC721 owner can call this function")
+    })
 })
 
 function getBalance(signer) {
