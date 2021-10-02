@@ -159,6 +159,36 @@ describe("ERC721FixedPricePurchase", async () => {
                 )
         ).to.be.revertedWith('ERC721FixedPricePurchase: Token is not listed')
     })
+
+    it("blocks purchases that underpay", async () => {
+        await this.MockERC721
+            .connect(this.signers[1])
+            .approve(this.ERC721FixedPricePurchase.address, BN(1))
+        await this.ERC721FixedPricePurchase
+            .connect(this.signers[1])
+            .list(this.MockERC721.address, BN(1), ethers.utils.parseEther("1"))
+
+        await expect(
+            this.ERC721FixedPricePurchase
+                .connect(this.signers[2])
+                .purchase(
+                    this.MockERC721.address,
+                    BN(1),
+                    {value: 0}
+                )
+        ).to.be.revertedWith('ERC721FixedPricePurchase: Buyer didn\'t send enough ether')
+
+        await expect(
+            this.ERC721FixedPricePurchase
+                .connect(this.signers[2])
+                .purchase(
+                    this.MockERC721.address,
+                    BN(1),
+                    {value: ethers.utils.parseEther("0.05")}
+                )
+        ).to.be.revertedWith('ERC721FixedPricePurchase: Buyer didn\'t send enough ether')
+
+    })
 })
 
 function getBalance(signer) {
