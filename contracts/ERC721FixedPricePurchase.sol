@@ -76,6 +76,8 @@ contract ERC721FixedPricePurchase is Ownable {
         require(sent, "ERC721FixedPricePurchase: Failed to send Ether");
 
         IERC721(erc721).safeTransferFrom(from, msg.sender, tokenId);
+        /// @dev price is set to 0 to protect future owners
+        listing[erc721][tokenId] = 0;
         emit Purchased(erc721, tokenId, msg.sender);
     }
 
