@@ -53,7 +53,7 @@ describe("ERC721FixedPricePurchase", async () => {
         expect(curBal2).to.equal(prevBal2.sub(gasCost).sub(ethers.utils.parseEther("0.01")))
     })
 
-    it('blocks the sale of unlisted nfts', async () => {
+    it("blocks the sale of unlisted nfts", async () => {
         // This test is specifically concerned with the case where the purchase contract is approved to transfer the
         // ERC721 before a listing price is registered
         await this.MockERC721
@@ -68,10 +68,10 @@ describe("ERC721FixedPricePurchase", async () => {
                     BN(1),
                     {value: 0}
                 )
-        ).to.be.revertedWith('ERC721FixedPricePurchase: Token is not listed')
+        ).to.be.revertedWith("ERC721FixedPricePurchase: Token is not listed")
     })
 
-    it('blocks the sale of recently sold nfts', async () => {
+    it("blocks the sale of recently sold nfts", async () => {
         await this.MockERC721
             .connect(this.signers[1])
             .approve(this.ERC721FixedPricePurchase.address, BN(1))
@@ -98,7 +98,7 @@ describe("ERC721FixedPricePurchase", async () => {
                     BN(1),
                     {value: ethers.utils.parseEther("0.01")}
                 )
-        ).to.be.revertedWith('ERC721FixedPricePurchase: Token is not listed')
+        ).to.be.revertedWith("ERC721FixedPricePurchase: Token is not listed")
 
         await this.MockERC721
             .connect(this.signers[2])
@@ -113,10 +113,10 @@ describe("ERC721FixedPricePurchase", async () => {
                     BN(1),
                     {value: ethers.utils.parseEther("0.01")}
                 )
-        ).to.be.revertedWith('ERC721FixedPricePurchase: Token is not listed')
+        ).to.be.revertedWith("ERC721FixedPricePurchase: Token is not listed")
     })
 
-    it('blocks the sale of delisted nfts', async () => {
+    it("blocks the sale of delisted nfts", async () => {
         // Part A: delisting by removing approval
         await this.MockERC721
             .connect(this.signers[1])
@@ -136,7 +136,7 @@ describe("ERC721FixedPricePurchase", async () => {
                     BN(1),
                     {value: ethers.utils.parseEther("0.01")}
                 )
-        ).to.be.revertedWith('ERC721: transfer caller is not owner nor approved')
+        ).to.be.revertedWith("ERC721: transfer caller is not owner nor approved")
 
         // Part B: delisting by setting price to 0
         await this.ERC721FixedPricePurchase
@@ -157,7 +157,7 @@ describe("ERC721FixedPricePurchase", async () => {
                     BN(1),
                     {value: 0}
                 )
-        ).to.be.revertedWith('ERC721FixedPricePurchase: Token is not listed')
+        ).to.be.revertedWith("ERC721FixedPricePurchase: Token is not listed")
     })
 
     it("blocks purchases that underpay", async () => {
@@ -176,7 +176,7 @@ describe("ERC721FixedPricePurchase", async () => {
                     BN(1),
                     {value: 0}
                 )
-        ).to.be.revertedWith('ERC721FixedPricePurchase: Buyer didn\'t send enough ether')
+        ).to.be.revertedWith("ERC721FixedPricePurchase: Buyer didn't send enough ether")
 
         await expect(
             this.ERC721FixedPricePurchase
@@ -186,8 +186,7 @@ describe("ERC721FixedPricePurchase", async () => {
                     BN(1),
                     {value: ethers.utils.parseEther("0.05")}
                 )
-        ).to.be.revertedWith('ERC721FixedPricePurchase: Buyer didn\'t send enough ether')
-
+        ).to.be.revertedWith("ERC721FixedPricePurchase: Buyer didn't send enough ether")
     })
 })
 
