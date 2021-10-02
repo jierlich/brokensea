@@ -25,32 +25,25 @@ describe("ERC721FixedPricePurchase", async () => {
         this.MockERC721.mint(this.signers[3].address)
     })
     it("works in the normal case", async () => {
-        await this.MockERC721
-            .connect(this.signers[1])
-            .approve(this.ERC721FixedPricePurchase.address, BN(1))
-        await this.ERC721FixedPricePurchase
-            .connect(this.signers[1])
-            .list(this.MockERC721.address, BN(1), ethers.utils.parseEther("0.01"))
-
         expect(await this.MockERC721.ownerOf(BN(1))).to.equal(this.signers[1].address)
-
         const prevBal1 = await getBalance(this.signers[1])
         const prevBal2 = await getBalance(this.signers[2])
-        const tx = await this.ERC721FixedPricePurchase
-            .connect(this.signers[2])
-            .purchase(
-                this.MockERC721.address,
-                BN(1),
-                {value: ethers.utils.parseEther("0.01")}
-            )
+
+        const {
+            approveTx,
+            listTx,
+            purchaseTx
+        } = await simplePurchase(this.signers, this.ERC721FixedPricePurchase, this.MockERC721)
 
         expect(await this.MockERC721.ownerOf(BN(1))).to.equal(this.signers[2].address)
 
-        const gasCost = await calculateGasCost(tx)
+        const approveGasCost = await calculateGasCost(approveTx)
+        const listGasCost = await calculateGasCost(listTx)
+        const purchaseGasCost = await calculateGasCost(purchaseTx)
         const curBal1 = await getBalance(this.signers[1])
         const curBal2 = await getBalance(this.signers[2])
-        expect(curBal1).to.equal(prevBal1.add(ethers.utils.parseEther("0.01")))
-        expect(curBal2).to.equal(prevBal2.sub(gasCost).sub(ethers.utils.parseEther("0.01")))
+        expect(curBal1).to.equal(prevBal1.add(ethers.utils.parseEther("0.01")).sub(approveGasCost).sub(listGasCost))
+        expect(curBal2).to.equal(prevBal2.sub(purchaseGasCost).sub(ethers.utils.parseEther("0.01")))
     })
 
     it("blocks the sale of unlisted nfts", async () => {
@@ -211,6 +204,22 @@ describe("ERC721FixedPricePurchase", async () => {
         ).to.be.revertedWith("ERC721FixedPricePurchase: Only ERC721 owner can call this function")
     })
 })
+
+// Condense logic for a commonly used purchase in one function call
+async function simplePurchase(signers, ERC721FixedPricePurchase, MockERC721) {
+    const approveTx = await MockERC721.connect(signers[1])
+        .approve(ERC721FixedPricePurchase.address, BN(1))
+    const listTx = await ERC721FixedPricePurchase.connect(signers[1])
+        .list(MockERC721.address, BN(1), ethers.utils.parseEther("0.01"))
+
+    const purchaseTx = await ERC721FixedPricePurchase.connect(signers[2])
+        .purchase(
+            MockERC721.address,
+            BN(1),
+            {value: ethers.utils.parseEther("0.01")}
+        )
+    return { approveTx, listTx, purchaseTx }
+}
 
 function getBalance(signer) {
     return ethers.provider.getBalance(signer.address)
