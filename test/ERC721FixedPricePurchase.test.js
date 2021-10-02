@@ -188,6 +188,13 @@ describe("ERC721FixedPricePurchase", async () => {
                 )
         ).to.be.revertedWith("ERC721FixedPricePurchase: Buyer didn't send enough ether")
     })
+
+    it("blocks non-owner listing", async () => {
+        await expect(this.ERC721FixedPricePurchase
+            .connect(this.signers[1])
+            .list(this.MockERC721.address, BN(2), ethers.utils.parseEther("0.01"))
+        ).to.be.revertedWith("ERC721FixedPricePurchase: Only ERC721 owner can call this function")
+    })
 })
 
 function getBalance(signer) {
