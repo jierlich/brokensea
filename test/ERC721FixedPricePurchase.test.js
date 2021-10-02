@@ -70,6 +70,51 @@ describe("ERC721FixedPricePurchase", async () => {
                 )
         ).to.be.revertedWith('ERC721FixedPricePurchase: Token is not listed')
     })
+
+    it('blocks the sale of recently sold nfts', async () => {
+        await this.MockERC721
+            .connect(this.signers[1])
+            .approve(this.ERC721FixedPricePurchase.address, BN(1))
+
+        await this.ERC721FixedPricePurchase
+            .connect(this.signers[1])
+            .list(this.MockERC721.address, BN(1), ethers.utils.parseEther("0.01"))
+
+
+        await this.ERC721FixedPricePurchase
+            .connect(this.signers[2])
+            .purchase(
+                this.MockERC721.address,
+                BN(1),
+                {value: ethers.utils.parseEther("0.01")}
+            )
+
+        // Part A: immediately after sale
+        await expect(
+            this.ERC721FixedPricePurchase
+                .connect(this.signers[3])
+                .purchase(
+                    this.MockERC721.address,
+                    BN(1),
+                    {value: ethers.utils.parseEther("0.01")}
+                )
+        ).to.be.revertedWith('ERC721FixedPricePurchase: Token is not listed')
+
+        await this.MockERC721
+            .connect(this.signers[2])
+            .approve(this.ERC721FixedPricePurchase.address, BN(1))
+
+        // Part B: reapproved but not relisted
+        await expect(
+            this.ERC721FixedPricePurchase
+                .connect(this.signers[3])
+                .purchase(
+                    this.MockERC721.address,
+                    BN(1),
+                    {value: ethers.utils.parseEther("0.01")}
+                )
+        ).to.be.revertedWith('ERC721FixedPricePurchase: Token is not listed')
+    })
 })
 
 function getBalance(signer) {
