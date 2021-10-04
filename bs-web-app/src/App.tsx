@@ -1,15 +1,27 @@
-import Asset from './pages/Asset';
-import Navbar from './components/NavBar';
-import { Grid } from '@mui/material';
+import React from "react";
+import Asset from "./pages/Asset";
+import Navbar from "./components/NavBar";
+import { Container, CssBaseline, ThemeProvider } from "@mui/material";
+import { NoSsr } from "@mui/core";
+import theme from "./theme/index";
 
-
-function App() {
+function App(): JSX.Element {
   return (
-    <Grid>
-      <Navbar />
-      <h1>Brokensea</h1>
-      <Asset name='Placeholder Name' image='https://picsum.photos/10/10'/>
-    </Grid>
+    <NoSsr>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Navbar />
+        <Container
+          maxWidth="lg"
+          sx={{ border: "1px black solid", marginTop: 5 }}
+        >
+          <Asset
+            name="Placeholder Name"
+            image="https://picsum.photos/100/100"
+          />
+        </Container>
+      </ThemeProvider>
+    </NoSsr>
   );
 }
 
