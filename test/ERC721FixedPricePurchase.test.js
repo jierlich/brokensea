@@ -439,6 +439,29 @@ describe("ERC721FixedPricePurchase", async () => {
                 .collectionWithdraw(this.MockERC721.address)
         ).to.be.revertedWith("ERC721FixedPricePurchase: No funds to withdraw for this collection")
     })
+
+    it("blocks protocol withdrawal when no fees accrued", async () => {
+        await this.ERC721FixedPricePurchase
+            .connect(this.signers[9])
+            .setProtocolFee(BN("750"))
+
+        await expect(
+            this.ERC721FixedPricePurchase
+                .connect(this.signers[9])
+                .protocolWithdraw()
+        ).to.be.revertedWith("ERC721FixedPricePurchase: No protocol funds to withdraw")
+
+        await simplePurchase(this.signers, this.ERC721FixedPricePurchase, this.MockERC721)
+
+        await this.ERC721FixedPricePurchase
+            .connect(this.signers[9])
+            .protocolWithdraw()
+        await expect(
+            this.ERC721FixedPricePurchase
+                .connect(this.signers[9])
+                .protocolWithdraw()
+        ).to.be.revertedWith("ERC721FixedPricePurchase: No protocol funds to withdraw")
+    })
 })
 
 // Condense logic for a commonly used purchase in one function call
