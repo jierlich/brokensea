@@ -207,7 +207,7 @@ describe("ERC721FixedPricePurchase", async () => {
     it("correctly calculates collection fees", async () => {
         await this.ERC721FixedPricePurchase
             .connect(this.signers[10])
-            .setCollectionFee(this.MockERC721.address, BN('1000'))
+            .setCollectionFee(this.MockERC721.address, BN("1000"))
         expect(await this.MockERC721.ownerOf(BN(1))).to.equal(this.signers[1].address)
         const prevBal1 = await getBalance(this.signers[1])
         const prevBal2 = await getBalance(this.signers[2])
@@ -239,7 +239,7 @@ describe("ERC721FixedPricePurchase", async () => {
     it("correctly calculates protocol fees", async () => {
         await this.ERC721FixedPricePurchase
             .connect(this.signers[9])
-            .setProtocolFee(BN('50'))
+            .setProtocolFee(BN("50"))
         expect(await this.MockERC721.ownerOf(BN(1))).to.equal(this.signers[1].address)
         const prevBal1 = await getBalance(this.signers[1])
         const prevBal2 = await getBalance(this.signers[2])
@@ -271,11 +271,11 @@ describe("ERC721FixedPricePurchase", async () => {
     it("correctly calculates both fees", async () => {
         await this.ERC721FixedPricePurchase
             .connect(this.signers[10])
-            .setCollectionFee(this.MockERC721.address, BN('750'))
+            .setCollectionFee(this.MockERC721.address, BN("750"))
 
         await this.ERC721FixedPricePurchase
             .connect(this.signers[9])
-            .setProtocolFee(BN('100'))
+            .setProtocolFee(BN("100"))
         expect(await this.MockERC721.ownerOf(BN(1))).to.equal(this.signers[1].address)
         const prevBal1 = await getBalance(this.signers[1])
         const prevBal2 = await getBalance(this.signers[2])
@@ -344,7 +344,7 @@ describe("ERC721FixedPricePurchase", async () => {
     it("ensures collection fees are withdrawn to collection owner", async () => {
         await this.ERC721FixedPricePurchase
             .connect(this.signers[10])
-            .setCollectionFee(this.MockERC721.address, BN('750'))
+            .setCollectionFee(this.MockERC721.address, BN("750"))
         const collectionRevenue = ethers.utils.parseEther("0.00075")
 
         // Part A: Other-initiaited withdraw
@@ -382,7 +382,7 @@ describe("ERC721FixedPricePurchase", async () => {
     it("ensures protocol fees are withdrawn to protocol owner", async () => {
         await this.ERC721FixedPricePurchase
             .connect(this.signers[9])
-            .setProtocolFee(BN('750'))
+            .setProtocolFee(BN("750"))
         const protocolRevenue = ethers.utils.parseEther("0.00075")
 
         // Part A: Other-initiaited withdraw
