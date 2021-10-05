@@ -8,13 +8,13 @@ describe("ERC721FixedPricePurchase", async () => {
     beforeEach(async () => {
         this.signers = await ethers.getSigners()
 
-        // Deploy listing contract
-        const ERC721FixedPricePurchaseContract = await ethers.getContractFactory("ERC721FixedPricePurchase", this.signers[0])
+        // Deploy listing contract. Owner is signer 9
+        const ERC721FixedPricePurchaseContract = await ethers.getContractFactory("ERC721FixedPricePurchase", this.signers[9])
         this.ERC721FixedPricePurchase = await ERC721FixedPricePurchaseContract.deploy()
         await this.ERC721FixedPricePurchase.deployed()
 
-        // Deploy mock contract
-        const MockERC721Contract = await ethers.getContractFactory("MockERC721", this.signers[0])
+        // Deploy mock contract. Owner is signer 10
+        const MockERC721Contract = await ethers.getContractFactory("MockERC721", this.signers[10])
         this.MockERC721 = await MockERC721Contract.deploy("MockNFT", "MOCK",)
         await this.MockERC721.deployed()
 
@@ -202,6 +202,38 @@ describe("ERC721FixedPricePurchase", async () => {
                 .connect(this.signers[2])
                 .list(this.MockERC721.address, BN(1), ethers.utils.parseEther("0.1"))
         ).to.be.revertedWith("ERC721FixedPricePurchase: Only ERC721 owner can call this function")
+    })
+
+    it("correctly calculates collection fees", async () => {
+        await this.ERC721FixedPricePurchase
+            .connect(this.signers[10])
+            .setCollectionFee(this.MockERC721.address, BN('1000'))
+        expect(await this.MockERC721.ownerOf(BN(1))).to.equal(this.signers[1].address)
+        const prevBal1 = await getBalance(this.signers[1])
+        const prevBal2 = await getBalance(this.signers[2])
+
+        const {
+            approveTx,
+            listTx,
+            purchaseTx
+        } = await simplePurchase(this.signers, this.ERC721FixedPricePurchase, this.MockERC721)
+
+        expect(await this.MockERC721.ownerOf(BN(1))).to.equal(this.signers[2].address)
+
+        const approveGasCost = await calculateGasCost(approveTx)
+        const listGasCost = await calculateGasCost(listTx)
+        const purchaseGasCost = await calculateGasCost(purchaseTx)
+        const curBal1 = await getBalance(this.signers[1])
+        const curBal2 = await getBalance(this.signers[2])
+
+        const purchasePrice = ethers.utils.parseEther("0.01")
+        const sellerRevenue = ethers.utils.parseEther("0.009")
+        const collectionRevenue = ethers.utils.parseEther("0.001")
+        expect(curBal1).to.equal(prevBal1.add(sellerRevenue).sub(approveGasCost).sub(listGasCost))
+        expect(curBal2).to.equal(prevBal2.sub(purchaseGasCost).sub(purchasePrice))
+        expect(
+            await this.ERC721FixedPricePurchase.collectionFeesAccrued(this.MockERC721.address)
+        ).to.equal(collectionRevenue)
     })
 })
 
