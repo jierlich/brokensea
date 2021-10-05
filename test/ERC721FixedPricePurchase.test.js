@@ -340,6 +340,44 @@ describe("ERC721FixedPricePurchase", async () => {
 
         expect(await this.ERC721FixedPricePurchase.protocolFee()).to.equal(BN("100"))
     })
+
+    it("ensures collection fees are withdrawn to collection owner", async () => {
+        await this.ERC721FixedPricePurchase
+            .connect(this.signers[10])
+            .setCollectionFee(this.MockERC721.address, BN('750'))
+        const collectionRevenue = ethers.utils.parseEther("0.00075")
+
+        // Part A: Other-initiaited withdraw
+        await simplePurchase(this.signers, this.ERC721FixedPricePurchase, this.MockERC721)
+
+        const balOwner0 = await getBalance(this.signers[10])
+        const balOther0 = await getBalance(this.signers[1])
+
+        const withdraw0Tx = await this.ERC721FixedPricePurchase
+            .connect(this.signers[1])
+            .collectionWithdraw(this.MockERC721.address)
+        const withdraw0GasCost = await calculateGasCost(withdraw0Tx)
+
+        const balOwner1 = await getBalance(this.signers[10])
+        const balOther1 = await getBalance(this.signers[1])
+        expect(balOwner1).to.equal(balOwner0.add(collectionRevenue))
+        expect(balOther1).to.equal(balOther0.sub(withdraw0GasCost))
+
+        // Part B: Self initiated withdraw
+        // Note: need to transfer ERC721 back for `simplePurchase` to work
+        await this.MockERC721
+            .connect(this.signers[2])
+            .transferFrom(this.signers[2].address, this.signers[1].address, BN("1"))
+        await simplePurchase(this.signers, this.ERC721FixedPricePurchase, this.MockERC721)
+
+        const withdraw1Tx = await this.ERC721FixedPricePurchase
+            .connect(this.signers[10])
+            .collectionWithdraw(this.MockERC721.address)
+        const withdraw1GasCost = await calculateGasCost(withdraw1Tx)
+
+        const balOwner2 = await getBalance(this.signers[10])
+        expect(balOwner2).to.equal(balOwner1.add(collectionRevenue).sub(withdraw1GasCost))
+    })
 })
 
 // Condense logic for a commonly used purchase in one function call
