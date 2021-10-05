@@ -267,6 +267,47 @@ describe("ERC721FixedPricePurchase", async () => {
             await this.ERC721FixedPricePurchase.protocolFeesAccrued()
         ).to.equal(protocolRevenue)
     })
+
+    it("correctly calculates both fees", async () => {
+        await this.ERC721FixedPricePurchase
+            .connect(this.signers[10])
+            .setCollectionFee(this.MockERC721.address, BN('750'))
+
+        await this.ERC721FixedPricePurchase
+            .connect(this.signers[9])
+            .setProtocolFee(BN('100'))
+        expect(await this.MockERC721.ownerOf(BN(1))).to.equal(this.signers[1].address)
+        const prevBal1 = await getBalance(this.signers[1])
+        const prevBal2 = await getBalance(this.signers[2])
+
+        const {
+            approveTx,
+            listTx,
+            purchaseTx
+        } = await simplePurchase(this.signers, this.ERC721FixedPricePurchase, this.MockERC721)
+
+        expect(await this.MockERC721.ownerOf(BN(1))).to.equal(this.signers[2].address)
+
+        const approveGasCost = await calculateGasCost(approveTx)
+        const listGasCost = await calculateGasCost(listTx)
+        const purchaseGasCost = await calculateGasCost(purchaseTx)
+        const curBal1 = await getBalance(this.signers[1])
+        const curBal2 = await getBalance(this.signers[2])
+
+        const purchasePrice = ethers.utils.parseEther("0.01")
+        const collectionRevenue = ethers.utils.parseEther("0.00075")
+        const protocolRevenue = ethers.utils.parseEther("0.0001")
+        const sellerRevenue = purchasePrice.sub(collectionRevenue).sub(protocolRevenue)
+
+        expect(curBal1).to.equal(prevBal1.add(sellerRevenue).sub(approveGasCost).sub(listGasCost))
+        expect(curBal2).to.equal(prevBal2.sub(purchaseGasCost).sub(purchasePrice))
+        expect(
+            await this.ERC721FixedPricePurchase.collectionFeesAccrued(this.MockERC721.address)
+        ).to.equal(collectionRevenue)
+        expect(
+            await this.ERC721FixedPricePurchase.protocolFeesAccrued()
+        ).to.equal(protocolRevenue)
+    })
 })
 
 // Condense logic for a commonly used purchase in one function call
