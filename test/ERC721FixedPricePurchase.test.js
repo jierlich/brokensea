@@ -324,6 +324,22 @@ describe("ERC721FixedPricePurchase", async () => {
 
         expect(await this.ERC721FixedPricePurchase.collectionFee(this.MockERC721.address)).to.equal(BN("100"))
     })
+
+    it("only allows protocol owner to change protocol fee", async () => {
+        expect(await this.ERC721FixedPricePurchase.protocolFee()).to.equal(0)
+        await this.ERC721FixedPricePurchase
+            .connect(this.signers[9])
+            .setProtocolFee(BN("100"))
+        expect(await this.ERC721FixedPricePurchase.protocolFee()).to.equal(BN("100"))
+
+        await expect(
+            this.ERC721FixedPricePurchase
+            .connect(this.signers[1])
+            .setProtocolFee(BN("50"))
+        ).to.be.revertedWith("Ownable: caller is not the owner")
+
+        expect(await this.ERC721FixedPricePurchase.protocolFee()).to.equal(BN("100"))
+    })
 })
 
 // Condense logic for a commonly used purchase in one function call
