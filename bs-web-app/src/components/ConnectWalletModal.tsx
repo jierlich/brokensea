@@ -31,10 +31,8 @@ export default function ConnectWalletModal({
       "any"
     );
     await provider.send("eth_requestAccounts", []);
-    const signer = provider.getSigner();
+    provider.getSigner();
     setIsOpen(false);
-
-    console.log("Account:", await signer.getAddress());
   };
   return (
     <Modal open={isOpen} onClose={handleClose}>
