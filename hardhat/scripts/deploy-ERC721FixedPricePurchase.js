@@ -8,8 +8,6 @@ async function main() {
     const contractFactory = await ethers.getContractFactory(contractName)
     const contract = await contractFactory.deploy()
 
-    console.log((await contract.deployTransaction.wait()).gasUsed.toString())
-
     console.log(`${contractName} address: `, contract.address)
 }
 
