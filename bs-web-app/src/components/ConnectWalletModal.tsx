@@ -1,9 +1,11 @@
 import React from "react";
 import { Modal, Typography, Button, Box } from "@mui/material";
+import { ethers } from "ethers";
 
 type ConnectWalletModalProps = {
   isOpen: boolean;
   handleClose: () => void;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const style = {
@@ -21,7 +23,19 @@ const style = {
 export default function ConnectWalletModal({
   isOpen,
   handleClose,
+  setIsOpen,
 }: ConnectWalletModalProps): JSX.Element {
+  const connectToMetamask = async () => {
+    const provider = new ethers.providers.Web3Provider(
+      (window as any).ethereum,
+      "any"
+    );
+    await provider.send("eth_requestAccounts", []);
+    const signer = provider.getSigner();
+    setIsOpen(false);
+
+    console.log("Account:", await signer.getAddress());
+  };
   return (
     <Modal open={isOpen} onClose={handleClose}>
       <Box sx={style}>
@@ -33,6 +47,7 @@ export default function ConnectWalletModal({
             padding: 20,
           }}
           variant="outlined"
+          onClick={connectToMetamask}
         >
           <img style={{ width: "20%" }} src="/metamask-logo.svg" />
           <Typography variant="h2" sx={{ mt: 1 }}>

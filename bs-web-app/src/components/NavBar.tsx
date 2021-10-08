@@ -17,6 +17,7 @@ export default function NavBar(): JSX.Element {
           </Button>
           <ConnectWalletModal
             isOpen={isOpen}
+            setIsOpen={setIsOpen}
             handleClose={() => setIsOpen(false)}
           />
         </Toolbar>
