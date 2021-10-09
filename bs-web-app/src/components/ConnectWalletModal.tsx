@@ -6,6 +6,7 @@ type ConnectWalletModalProps = {
   isOpen: boolean;
   handleClose: () => void;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  checkLoggedIn: () => void;
 };
 
 const style = {
@@ -24,15 +25,18 @@ export default function ConnectWalletModal({
   isOpen,
   handleClose,
   setIsOpen,
+  checkLoggedIn,
 }: ConnectWalletModalProps): JSX.Element {
+  const provider = new ethers.providers.Web3Provider(
+    (window as any).ethereum,
+    "any"
+  );
+
   const connectToMetamask = async () => {
-    const provider = new ethers.providers.Web3Provider(
-      (window as any).ethereum,
-      "any"
-    );
     await provider.send("eth_requestAccounts", []);
     provider.getSigner();
     setIsOpen(false);
+    checkLoggedIn();
   };
   return (
     <Modal open={isOpen} onClose={handleClose}>
