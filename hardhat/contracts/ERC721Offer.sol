@@ -12,6 +12,9 @@ import "./interfaces/IOwnable.sol";
 /// @notice Collection owners can set fees
 /// @dev The collection owner fee is dependent on the existence of an `owner` function on the ERC721 contract
 contract ERC721Offer is Ownable {
+    /// @dev mapping from offerer -> ERC721 address -> token id -> offer amount
+    mapping(address => mapping(address => mapping(uint => uint))) public offer;
+
     /// @dev mapping from collection owner to collection fee
     mapping(address => uint) public collectionFee;
 
@@ -27,13 +30,24 @@ contract ERC721Offer is Ownable {
     /// @dev used to calculate the basis point fee
     uint constant FEE_BASE = 10000;
 
-    event Offered(address indexed erc721, uint indexed tokenId, address indexed owner, uint price);
+    event Offered(address indexed erc721, uint indexed tokenId, address indexed offerer, uint amount);
 
     event Purchased(address indexed erc721, uint indexed tokenId, address indexed buyer);
 
     modifier onlyCollectionOwner(address erc721) {
         require(IOwnable(erc721).owner() == msg.sender, "ERC721FixedPricePurchase: Only collection owner can call this function");
         _;
+    }
+
+    /// @notice make an offer to purchase an ERC721
+    /// @dev the owner must approve WETH for this contract in a separate transaction to allow the offer to be accepted
+    /// @dev approval implementation should add to existing allowance
+    /// @param erc721 token contract
+    /// @param tokenId id of the ERC721 token
+    /// @param amount amount buyer is offering to purchase the ERC721
+    function makeOffer(address erc721, uint tokenId, uint amount) public {
+        offer[msg.sender][erc721][tokenId] = amount;
+        emit Offered(erc721, tokenId, msg.sender, amount);
     }
 
     /// @notice set the basis point fee of the collection owner
