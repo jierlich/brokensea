@@ -30,6 +30,9 @@ contract ERC721Offer is Ownable {
     /// @dev used to calculate the basis point fee
     uint constant FEE_BASE = 10000;
 
+    /// @dev weth address used for payment
+    address public immutable weth;
+
     event Offered(address indexed erc721, uint indexed tokenId, address indexed offerer, uint amount);
 
     event Purchased(address indexed erc721, uint indexed tokenId, address indexed buyer);
@@ -37,6 +40,11 @@ contract ERC721Offer is Ownable {
     modifier onlyCollectionOwner(address erc721) {
         require(IOwnable(erc721).owner() == msg.sender, "ERC721FixedPricePurchase: Only collection owner can call this function");
         _;
+    }
+
+    /// @param _weth address of the weth token
+    constructor(address _weth) {
+        weth = _weth;
     }
 
     /// @notice make an offer to purchase an ERC721
