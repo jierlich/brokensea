@@ -2,6 +2,7 @@
 
 pragma solidity =0.8.4;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IOwnable.sol";
@@ -56,6 +57,23 @@ contract ERC721Offer is Ownable {
     function makeOffer(address erc721, uint tokenId, uint amount) public {
         offer[msg.sender][erc721][tokenId] = amount;
         emit Offered(erc721, tokenId, msg.sender, amount);
+    }
+
+    /// @param erc721 token contract
+    /// @param tokenId id of the ERC721 token
+    /// @param offerer address whose offer is being accepted
+    /// @dev the owner must approve the tokenId on the ERC721 in a separate transaction to accept the offer
+    function acceptOffer(address erc721, uint tokenId, address offerer) public {
+        uint offerAmount = offer[offerer][erc721][tokenId];
+        uint collectionFeeAmount = offerAmount * collectionFee[erc721] / FEE_BASE;
+        uint protocolFeeAmount = offerAmount * protocolFee / FEE_BASE;
+        uint sellerFeeAmount = offerAmount - protocolFeeAmount - collectionFeeAmount;
+
+        collectionFeesAccrued[erc721] += collectionFeeAmount;
+        protocolFeesAccrued += protocolFeeAmount;
+
+        IERC20(weth).transferFrom(offerer, msg.sender, sellerFeeAmount);
+        IERC721(erc721).safeTransferFrom(msg.sender, offerer, tokenId);
     }
 
     /// @notice set the basis point fee of the collection owner
